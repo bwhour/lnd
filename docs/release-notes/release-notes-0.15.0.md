@@ -44,6 +44,11 @@
   arbitrator relying on htlcswitch to be started
   first](https://github.com/lightningnetwork/lnd/pull/6214).
 
+* [Added signature length
+  validation](https://github.com/lightningnetwork/lnd/pull/6314) when calling
+  `NewSigFromRawSignature`.
+
+
 ## Misc
 
 * [An example systemd service file](https://github.com/lightningnetwork/lnd/pull/6033)
@@ -73,12 +78,20 @@
 * [The `tlv` package was refactored into its own Golang
   submodule](https://github.com/lightningnetwork/lnd/pull/6283).
 
+* [Source repository can now be specified for Docker image builds](https://github.com/lightningnetwork/lnd/pull/6300)
+
+* [The new `btcsuite/btcd/btcec/v2` and the moved `btcsuite/btcd/btcutil`
+  modules were integrated into `lnd` as a preparation for basic Taproot
+  support](https://github.com/lightningnetwork/lnd/pull/6285).
+
 ## RPC Server
 
 * [Add value to the field
   `remote_balance`](https://github.com/lightningnetwork/lnd/pull/5931) in
   `pending_force_closing_channels` under `pendingchannels` whereas before was
   empty(zero).
+* The graph's [diameter is calculated](https://github.com/lightningnetwork/lnd/pull/6066)
+  and added to the `getnetworkinfo` output.
 
 * [Add dev only RPC subserver and the devrpc.ImportGraph
   call](https://github.com/lightningnetwork/lnd/pull/6149)
@@ -87,6 +100,11 @@
   interceptor API to provide more control over failure messages. With this
   change, it allows encrypted failure messages to be returned to the sender.
   Additionally it is possible to signal a malformed htlc.
+
+## Database
+
+* [Add ForAll implementation for etcd to speed up
+  graph cache at startup](https://github.com/lightningnetwork/lnd/pull/6136)
 
 ## Documentation
 
@@ -135,8 +153,10 @@ gRPC performance metrics (latency to process `GetInfo`, etc)](https://github.com
 # Contributors (Alphabetical Order)
 
 * 3nprob
+* Andras Banki-Horvath
 * Andreas Schjønhaug
 * asvdf
+* bitromortac
 * BTCparadigm
 * Carla Kirk-Cohen
 * Carsten Otto

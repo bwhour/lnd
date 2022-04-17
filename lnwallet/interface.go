@@ -12,6 +12,7 @@ import (
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/btcutil/psbt"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcwallet/waddrmgr"
 	"github.com/btcsuite/btcwallet/wallet/txauthor"
@@ -41,6 +42,9 @@ const (
 	// NestedWitnessPubKey represents a p2sh output which is itself a
 	// nested p2wkh output.
 	NestedWitnessPubKey
+
+	// TaprootPubkey represents a p2tr key path spending address.
+	TaprootPubkey
 )
 
 var (
@@ -83,6 +87,16 @@ type Utxo struct {
 	PrevTx     *wire.MsgTx
 }
 
+// OutputDetail contains additional information on a destination address.
+type OutputDetail struct {
+	OutputType   txscript.ScriptClass
+	Addresses    []btcutil.Address
+	PkScript     []byte
+	OutputIndex  int
+	Value        btcutil.Amount
+	IsOurAddress bool
+}
+
 // TransactionDetail describes a transaction with either inputs which belong to
 // the wallet, or has outputs that pay to the wallet.
 type TransactionDetail struct {
@@ -117,8 +131,9 @@ type TransactionDetail struct {
 	// TotalFees is the total fee in satoshis paid by this transaction.
 	TotalFees int64
 
-	// DestAddresses are the destinations for a transaction
-	DestAddresses []btcutil.Address
+	// OutputDetails contains output data for each destination address, such
+	// as the output script and amount.
+	OutputDetails []OutputDetail
 
 	// RawTx returns the raw serialized transaction.
 	RawTx []byte
@@ -203,6 +218,10 @@ type WalletController interface {
 
 	// IsOurAddress checks if the passed address belongs to this wallet
 	IsOurAddress(a btcutil.Address) bool
+
+	// AddressInfo returns the information about an address, if it's known
+	// to this wallet.
+	AddressInfo(a btcutil.Address) (waddrmgr.ManagedAddress, error)
 
 	// ListAccounts retrieves all accounts belonging to the wallet by
 	// default. A name and key scope filter can be provided to filter
@@ -345,6 +364,17 @@ type WalletController interface {
 	// has a label, this call will fail unless the overwrite parameter
 	// is set. Labels must not be empty, and they are limited to 500 chars.
 	LabelTransaction(hash chainhash.Hash, label string, overwrite bool) error
+
+	// FetchTx attempts to fetch a transaction in the wallet's database
+	// identified by the passed transaction hash. If the transaction can't
+	// be found, then a nil pointer is returned.
+	FetchTx(chainhash.Hash) (*wire.MsgTx, error)
+
+	// RemoveDescendants attempts to remove any transaction from the
+	// wallet's tx store (that may be unconfirmed) that spends outputs
+	// created by the passed transaction. This remove propagates
+	// recursively down the chain of descendent transactions.
+	RemoveDescendants(*wire.MsgTx) error
 
 	// FundPsbt creates a fully populated PSBT packet that contains enough
 	// inputs to fund the outputs specified in the passed in packet with the

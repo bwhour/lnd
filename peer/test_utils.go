@@ -38,6 +38,10 @@ const (
 	// timeout is a timeout value to use for tests which need to wait for
 	// a return value on a channel.
 	timeout = time.Second * 5
+
+	// testCltvRejectDelta is the minimum delta between expiry and current
+	// height below which htlcs are rejected.
+	testCltvRejectDelta = 13
 )
 
 var (
@@ -367,7 +371,9 @@ func createTestPeer(notifier chainntnfs.ChainNotifier,
 		Switch:      mockSwitch,
 
 		ChanActiveTimeout: chanActiveTimeout,
-		InterceptSwitch:   htlcswitch.NewInterceptableSwitch(nil),
+		InterceptSwitch: htlcswitch.NewInterceptableSwitch(
+			nil, testCltvRejectDelta, false,
+		),
 
 		ChannelDB:      dbAlice.ChannelStateDB(),
 		FeeEstimator:   estimator,
